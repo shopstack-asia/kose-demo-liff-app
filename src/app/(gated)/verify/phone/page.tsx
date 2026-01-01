@@ -1,15 +1,15 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Button, Card, Typography, message } from 'antd';
+import { Button, Card, Typography, message, Spin } from 'antd';
 import { PageHeader } from '@/components/layout/page_header';
 import { OtpInput } from '@/components/common/otp_input';
 import { apiClient } from '@/lib/api_client';
 
 const { Paragraph } = Typography;
 
-export default function VerifyPhonePage() {
+function VerifyPhoneContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const customerId = searchParams.get('customer_id');
@@ -202,18 +202,30 @@ export default function VerifyPhonePage() {
           )}
         </Paragraph>
 
-              <Button
-                type="primary"
-                block
-                size="large"
-                onClick={() => handleVerify()}
-                loading={loading}
-                disabled={otp.length !== 6}
-              >
-                Verify
-              </Button>
+        <Button
+          type="primary"
+          block
+          size="large"
+          onClick={() => handleVerify()}
+          loading={loading}
+          disabled={otp.length !== 6}
+        >
+          Verify
+        </Button>
       </Card>
     </div>
+  );
+}
+
+export default function VerifyPhonePage() {
+  return (
+    <Suspense fallback={
+      <div className="page-container" style={{ paddingTop: 40, display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
+        <Spin size="large" />
+      </div>
+    }>
+      <VerifyPhoneContent />
+    </Suspense>
   );
 }
 
