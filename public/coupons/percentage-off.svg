@@ -1,0 +1,42 @@
+<svg width="400" height="240" viewBox="0 0 400 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background gradient -->
+  <defs>
+    <linearGradient id="percentGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f8f9fa;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ffffff;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="percentIconGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1f4da1;stop-opacity:0.15" />
+      <stop offset="100%" style="stop-color:#1f4da1;stop-opacity:0.08" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="400" height="240" fill="url(#percentGradient)" rx="16"/>
+  
+  <!-- Decorative circles -->
+  <circle cx="320" cy="60" r="80" fill="url(#percentIconGradient)"/>
+  <circle cx="340" cy="80" r="60" fill="url(#percentIconGradient)" opacity="0.5"/>
+  
+  <!-- Percentage icon -->
+  <g transform="translate(280, 40)">
+    <!-- Percent symbol -->
+    <circle cx="30" cy="30" r="12" fill="none" stroke="#1f4da1" stroke-width="3" opacity="0.4"/>
+    <circle cx="30" cy="30" r="6" fill="#1f4da1" opacity="0.3"/>
+    
+    <line x1="20" y1="20" x2="50" y2="60" stroke="#1f4da1" stroke-width="3" opacity="0.4" stroke-linecap="round"/>
+    
+    <circle cx="70" cy="60" r="12" fill="none" stroke="#1f4da1" stroke-width="3" opacity="0.4"/>
+    <circle cx="70" cy="60" r="6" fill="#1f4da1" opacity="0.3"/>
+    
+    <!-- Sparkle effects -->
+    <circle cx="15" cy="25" r="2" fill="#1f4da1" opacity="0.6"/>
+    <circle cx="85" cy="55" r="2" fill="#1f4da1" opacity="0.6"/>
+    <circle cx="50" cy="15" r="1.5" fill="#1f4da1" opacity="0.5"/>
+    <circle cx="50" cy="75" r="1.5" fill="#1f4da1" opacity="0.5"/>
+  </g>
+  
+  <!-- KOSE brand accent -->
+  <text x="40" y="200" font-family="Arial, sans-serif" font-size="12" font-weight="600" fill="#1f4da1" opacity="0.6">KOSÉ</text>
+</svg>
+

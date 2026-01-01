@@ -1,0 +1,40 @@
+<svg width="400" height="240" viewBox="0 0 400 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background gradient -->
+  <defs>
+    <linearGradient id="fixedGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f8f9fa;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ffffff;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="fixedIconGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1f4da1;stop-opacity:0.15" />
+      <stop offset="100%" style="stop-color:#1f4da1;stop-opacity:0.08" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="400" height="240" fill="url(#fixedGradient)" rx="16"/>
+  
+  <!-- Decorative circles -->
+  <circle cx="320" cy="60" r="80" fill="url(#fixedIconGradient)"/>
+  <circle cx="340" cy="80" r="60" fill="url(#fixedIconGradient)" opacity="0.5"/>
+  
+  <!-- Money/Coin icon -->
+  <g transform="translate(280, 40)">
+    <!-- Coin circle -->
+    <circle cx="50" cy="50" r="25" fill="#1f4da1" fill-opacity="0.15" stroke="#1f4da1" stroke-width="2" stroke-opacity="0.3"/>
+    <circle cx="50" cy="50" r="18" fill="#1f4da1" fill-opacity="0.1"/>
+    
+    <!-- Baht symbol -->
+    <text x="50" y="58" font-family="Arial, sans-serif" font-size="24" font-weight="700" fill="#1f4da1" opacity="0.4" text-anchor="middle">฿</text>
+    
+    <!-- Sparkle effects -->
+    <circle cx="25" cy="30" r="2" fill="#1f4da1" opacity="0.6"/>
+    <circle cx="75" cy="30" r="2" fill="#1f4da1" opacity="0.6"/>
+    <circle cx="30" cy="70" r="1.5" fill="#1f4da1" opacity="0.5"/>
+    <circle cx="70" cy="70" r="1.5" fill="#1f4da1" opacity="0.5"/>
+  </g>
+  
+  <!-- KOSE brand accent -->
+  <text x="40" y="200" font-family="Arial, sans-serif" font-size="12" font-weight="600" fill="#1f4da1" opacity="0.6">KOSÉ</text>
+</svg>
+

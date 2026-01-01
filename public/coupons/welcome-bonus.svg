@@ -1,0 +1,44 @@
+<svg width="400" height="240" viewBox="0 0 400 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background gradient -->
+  <defs>
+    <linearGradient id="welcomeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f8f9fa;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ffffff;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="iconGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1f4da1;stop-opacity:0.15" />
+      <stop offset="100%" style="stop-color:#1f4da1;stop-opacity:0.08" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="400" height="240" fill="url(#welcomeGradient)" rx="16"/>
+  
+  <!-- Decorative circles -->
+  <circle cx="320" cy="60" r="80" fill="url(#iconGradient)"/>
+  <circle cx="340" cy="80" r="60" fill="url(#iconGradient)" opacity="0.5"/>
+  
+  <!-- Gift icon -->
+  <g transform="translate(280, 40)">
+    <!-- Ribbon bow -->
+    <path d="M40 20 L50 20 L50 30 L45 35 L40 30 Z" fill="#1f4da1" opacity="0.8"/>
+    <path d="M50 20 L60 20 L60 30 L55 35 L50 30 Z" fill="#1f4da1" opacity="0.8"/>
+    <circle cx="45" cy="25" r="3" fill="#ffffff"/>
+    <circle cx="55" cy="25" r="3" fill="#ffffff"/>
+    
+    <!-- Gift box -->
+    <rect x="30" y="35" width="40" height="30" fill="#1f4da1" opacity="0.2" rx="4"/>
+    <rect x="30" y="35" width="40" height="15" fill="#1f4da1" opacity="0.3" rx="4"/>
+    <line x1="50" y1="35" x2="50" y2="65" stroke="#1f4da1" stroke-width="2" opacity="0.4"/>
+    
+    <!-- Sparkle effects -->
+    <circle cx="25" cy="30" r="2" fill="#1f4da1" opacity="0.6"/>
+    <circle cx="75" cy="50" r="2" fill="#1f4da1" opacity="0.6"/>
+    <circle cx="35" cy="70" r="1.5" fill="#1f4da1" opacity="0.5"/>
+    <circle cx="65" cy="70" r="1.5" fill="#1f4da1" opacity="0.5"/>
+  </g>
+  
+  <!-- KOSE brand accent -->
+  <text x="40" y="200" font-family="Arial, sans-serif" font-size="12" font-weight="600" fill="#1f4da1" opacity="0.6">KOSÉ</text>
+</svg>
+
