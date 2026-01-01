@@ -1,6 +1,7 @@
 'use client';
 
 import { Input, Space } from 'antd';
+import type { InputRef } from 'antd';
 import { useState, useRef, useEffect } from 'react';
 
 interface OtpInputProps {
@@ -11,10 +12,10 @@ interface OtpInputProps {
 
 export function OtpInput({ length = 6, onChange, onComplete }: OtpInputProps) {
   const [values, setValues] = useState<string[]>(Array(length).fill(''));
-  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const inputRefs = useRef<(InputRef | null)[]>([]);
 
   useEffect(() => {
-    inputRefs.current[0]?.focus();
+    inputRefs.current[0]?.input?.focus();
   }, []);
 
   const handleChange = (index: number, value: string) => {
@@ -30,13 +31,13 @@ export function OtpInput({ length = 6, onChange, onComplete }: OtpInputProps) {
     if (otpValue.length === length) {
       onComplete?.(otpValue);
     } else if (value && index < length - 1) {
-      inputRefs.current[index + 1]?.focus();
+      inputRefs.current[index + 1]?.input?.focus();
     }
   };
 
   const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Backspace' && !values[index] && index > 0) {
-      inputRefs.current[index - 1]?.focus();
+      inputRefs.current[index - 1]?.input?.focus();
     }
   };
 
@@ -59,7 +60,9 @@ export function OtpInput({ length = 6, onChange, onComplete }: OtpInputProps) {
       {values.map((value, index) => (
         <Input
           key={index}
-          ref={(el) => (inputRefs.current[index] = el)}
+          ref={(el) => {
+            inputRefs.current[index] = el;
+          }}
           value={value}
           onChange={(e) => handleChange(index, e.target.value)}
           onKeyDown={(e) => handleKeyDown(index, e)}

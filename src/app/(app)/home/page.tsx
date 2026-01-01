@@ -156,7 +156,7 @@ export default function HomePage() {
         <div style={{ marginBottom: 40 }}>
           <div style={{ marginBottom: 16 }}>
             <Title level={4} style={{ margin: 0, marginBottom: 4, fontWeight: 600, color: '#2C2C2C' }}>
-              Consumer's Review
+              Consumer&apos;s Review
             </Title>
             <Text type="secondary" style={{ fontSize: 13 }}>
               Real reviews from real users
@@ -212,7 +212,7 @@ export default function HomePage() {
                         fontStyle: 'italic',
                       }}
                     >
-                      "{review.review_text}"
+                      &ldquo;{review.review_text}&rdquo;
                     </Text>
                     <Text type="secondary" style={{ fontSize: 12 }}>
                       — {review.reviewer_name}

@@ -50,12 +50,13 @@ export default function PurchaseItemsPage() {
         }
 
         const response = await apiClient.patch<{
+          status: string;
           customer?: { id: string };
         }>('/customer/profile', {
           line_user_id: lineProfile.userId,
         });
 
-        if (response.success && response.data?.customer?.id) {
+        if (response.success && response.data && response.data.customer?.id) {
           setCustomerId(response.data.customer.id);
         }
       } catch (error) {

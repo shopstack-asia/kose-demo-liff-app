@@ -41,7 +41,6 @@ export function GenderPickerDrawer({
       }}
       footer={null}
       closeIcon={null}
-      height="auto"
     >
       <div style={{ padding: '8px 0' }}>
         {genderOptions.map((option, index) => {

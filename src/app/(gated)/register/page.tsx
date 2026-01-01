@@ -82,7 +82,10 @@ export default function RegisterPage() {
         return;
       }
 
-      const response = await apiClient.patch('/customer/profile', {
+      const response = await apiClient.patch<{
+        status: string;
+        customer?: { id: string };
+      }>('/customer/profile', {
         line_user_id: profile.userId,
         first_name: values.first_name,
         last_name: values.last_name,
@@ -94,8 +97,8 @@ export default function RegisterPage() {
         image_url: imageUrl || profile.pictureUrl,
       });
 
-      if (response.success && response.data?.customer) {
-        const customer = response.data.customer as { id: string };
+      if (response.success && response.data && response.data.customer) {
+        const customer = response.data.customer;
         await refresh(); // Refresh auth status
         // Pass email in query params if provided
         const emailParam = values.email ? `&email=${encodeURIComponent(values.email)}` : '';

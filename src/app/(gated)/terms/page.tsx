@@ -239,9 +239,9 @@ export default function TermsPage() {
             Your personal information will be used to provide services, send
             promotions, and improve your experience. We respect your privacy and
             handle data securely. For more details, please refer to our{' '}
-            <Text type="link" style={{ cursor: 'pointer' }}>
+            <a href="#" style={{ color: '#1f4da1', textDecoration: 'underline', cursor: 'pointer' }}>
               Privacy Notice
-            </Text>
+            </a>
             .
           </Paragraph>
 

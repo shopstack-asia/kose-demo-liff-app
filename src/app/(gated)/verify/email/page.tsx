@@ -117,7 +117,7 @@ export default function VerifyEmailPage() {
           if (registerResponse.success) {
             // Store registration data in localStorage
             // API returns { success: true, data: { customer: {...} } }
-            const registrationData = registerResponse.data || { customer: registerResponse.customer };
+            const registrationData = registerResponse.data || {};
             if (typeof window !== 'undefined') {
               localStorage.setItem('kose_registration', JSON.stringify(registrationData));
             }
@@ -219,7 +219,7 @@ export default function VerifyEmailPage() {
         if (registerResponse.success) {
           // Store registration data in localStorage
           // API returns { success: true, data: { customer: {...} } }
-          const registrationData = registerResponse.data || { customer: registerResponse.customer };
+          const registrationData = registerResponse.data || {};
           if (typeof window !== 'undefined') {
             localStorage.setItem('kose_registration', JSON.stringify(registrationData));
           }
@@ -275,7 +275,7 @@ export default function VerifyEmailPage() {
         </Paragraph>
 
         <Paragraph style={{ textAlign: 'center', color: '#666', marginBottom: 24 }}>
-          Didn't receive the code? Check your spam folder or{' '}
+          Didn&apos;t receive the code? Check your spam folder or{' '}
           <Button type="link" style={{ padding: 0 }}>
             resend
           </Button>

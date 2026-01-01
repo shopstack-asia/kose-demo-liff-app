@@ -31,7 +31,7 @@ export function LinePermissionPage({ onRetry }: LinePermissionPageProps) {
           แอปพลิเคชันนี้ต้องการเข้าถึงข้อมูลโปรไฟล์ LINE ของคุณ
           <br />
           <br />
-          กรุณากดปุ่ม "อนุญาต" เพื่อให้แอปพลิเคชันเข้าถึงข้อมูลโปรไฟล์ของคุณ
+          กรุณากดปุ่ม &quot;อนุญาต&quot; เพื่อให้แอปพลิเคชันเข้าถึงข้อมูลโปรไฟล์ของคุณ
         </Paragraph>
         {onRetry && (
           <Button type="primary" block size="large" onClick={onRetry}>
