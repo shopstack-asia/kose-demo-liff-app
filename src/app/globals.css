@@ -141,3 +141,16 @@ body {
   }
 }
 
+/* OTP Input Mobile Fix - Prevent Overflow */
+.ant-card-body {
+  padding: 16px !important;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+@media (max-width: 375px) {
+  .ant-card-body {
+    padding: 12px !important;
+  }
+}
+

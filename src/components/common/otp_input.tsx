@@ -56,7 +56,19 @@ export function OtpInput({ length = 6, onChange, onComplete }: OtpInputProps) {
   };
 
   return (
-    <Space size="middle" style={{ justifyContent: 'center', width: '100%' }}>
+    <div
+      style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        gap: 'clamp(4px, 2vw, 8px)',
+        width: '100%',
+        maxWidth: '100%',
+        padding: '0 clamp(8px, 4vw, 16px)',
+        boxSizing: 'border-box',
+        margin: '0 auto',
+      }}
+    >
       {values.map((value, index) => (
         <Input
           key={index}
@@ -69,15 +81,20 @@ export function OtpInput({ length = 6, onChange, onComplete }: OtpInputProps) {
           onPaste={handlePaste}
           maxLength={1}
           style={{
-            width: 48,
-            height: 56,
-            fontSize: 24,
+            width: 'clamp(38px, 11vw, 48px)',
+            height: 'clamp(46px, 13vw, 56px)',
+            minWidth: '38px',
+            minHeight: '46px',
+            fontSize: 'clamp(18px, 5.5vw, 24px)',
             textAlign: 'center',
             fontWeight: 600,
+            flexShrink: 0,
+            padding: 0,
+            borderRadius: '8px',
           }}
         />
       ))}
-    </Space>
+    </div>
   );
 }
 

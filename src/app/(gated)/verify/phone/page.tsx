@@ -180,7 +180,7 @@ function VerifyPhoneContent() {
       />
 
       <Card>
-        <div style={{ textAlign: 'center', marginBottom: 32 }}>
+        <div style={{ textAlign: 'center', marginBottom: 32, width: '100%', overflow: 'hidden' }}>
           <OtpInput
             onChange={setOtp}
             onComplete={handleOtpComplete}
