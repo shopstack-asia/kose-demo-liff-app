@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
   const mockSetting: SettingResponse = {
     name: 'MOCK TEST',
     code: 'MOCK',
-    liff_app_id: '2007413561-1tM0q5cE',
+    liff_app_id: '2008806049-Fm2qVcAg',
   };
 
   return NextResponse.json({ success: true, data: mockSetting });
