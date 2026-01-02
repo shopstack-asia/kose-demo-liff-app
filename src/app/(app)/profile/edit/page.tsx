@@ -41,9 +41,40 @@ export default function EditProfilePage() {
   useEffect(() => {
     async function loadProfile() {
       try {
+        // Check localStorage first - this is the primary data source
+        if (typeof window !== 'undefined') {
+          const stored = localStorage.getItem('kose_registration');
+          if (stored) {
+            try {
+              const registrationData = JSON.parse(stored);
+              const customer = registrationData?.customer || registrationData?.data?.customer;
+              if (customer) {
+                setProfile(customer);
+                setImageUrl(customer.image_url || '');
+
+                form.setFieldsValue({
+                  first_name: customer.first_name,
+                  last_name: customer.last_name,
+                  phone: customer.phone,
+                  email: customer.email,
+                  line_id: customer.line_id || '',
+                  dob: customer.dob ? dayjs(customer.dob) : undefined,
+                  gender: customer.gender,
+                });
+                setLoading(false);
+                return;
+              }
+            } catch (error) {
+              console.error('Error parsing localStorage:', error);
+            }
+          }
+        }
+
+        // If no localStorage, try to get from API using lineProfile (optional fallback)
         const lineProfile = liff.getProfile();
         if (!lineProfile) {
           // RouteGuard handles authentication - just return
+          setLoading(false);
           return;
         }
 
@@ -145,20 +176,38 @@ export default function EditProfilePage() {
     // No phone/email change, update directly
     setSaving(true);
     try {
-      // Get line_user_id from LINE profile
+      // Get line_user_id from localStorage first, then fallback to lineProfile
       let lineUserId = null;
-      const lineProfile = liff.getProfile();
-      if (lineProfile) {
-        lineUserId = lineProfile.userId;
-      } else if (typeof window !== 'undefined') {
+      if (typeof window !== 'undefined') {
         try {
-          const savedProfile = sessionStorage.getItem('kose_liff_profile');
-          if (savedProfile) {
-            const parsed = JSON.parse(savedProfile);
-            lineUserId = parsed.userId;
+          const stored = localStorage.getItem('kose_registration');
+          if (stored) {
+            const registrationData = JSON.parse(stored);
+            const customer = registrationData?.customer || registrationData?.data?.customer;
+            if (customer?.line_id) {
+              lineUserId = customer.line_id;
+            }
           }
         } catch (error) {
-          console.warn('Failed to load profile from sessionStorage:', error);
+          console.error('Error parsing localStorage:', error);
+        }
+      }
+
+      // Fallback to lineProfile if not found in localStorage
+      if (!lineUserId) {
+        const lineProfile = liff.getProfile();
+        if (lineProfile) {
+          lineUserId = lineProfile.userId;
+        } else if (typeof window !== 'undefined') {
+          try {
+            const savedProfile = sessionStorage.getItem('kose_liff_profile');
+            if (savedProfile) {
+              const parsed = JSON.parse(savedProfile);
+              lineUserId = parsed.userId;
+            }
+          } catch (error) {
+            console.warn('Failed to load profile from sessionStorage:', error);
+          }
         }
       }
 
