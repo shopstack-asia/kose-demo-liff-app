@@ -75,7 +75,8 @@ class LiffService {
         // If window.liff exists, this is definitely a LINE Browser entry
         // Use liff.isInClient() as the PRIMARY source of truth
         if (liffObj && typeof liffObj.isInClient === 'function') {
-          this.isInLineBrowser = liffObj.isInClient() === true;
+          const isInClientResult = liffObj.isInClient();
+          this.isInLineBrowser = isInClientResult === true;
         } else {
           // If window.liff exists but isInClient is not available, assume LINE Browser
           this.isInLineBrowser = true;
@@ -83,7 +84,15 @@ class LiffService {
       } else {
         // If window.liff doesn't exist, use checkLineBrowser() as fallback
         // This handles mock environment or non-LINE browsers
-        this.isInLineBrowser = this.checkLineBrowser();
+        const checkResult = this.checkLineBrowser();
+        this.isInLineBrowser = checkResult;
+        
+        // IMPORTANT: If checkLineBrowser() returns true (LINE browser detected by URL/user agent)
+        // but window.liff doesn't exist, we should still treat it as LINE browser
+        // This handles cases where window.liff is injected late or not at all
+        if (checkResult) {
+          this.isInLineBrowser = true;
+        }
       }
       
       // Check if we have OAuth callback code (after LINE login redirect)
@@ -194,7 +203,7 @@ class LiffService {
   private checkLineBrowser(): boolean {
     if (typeof window === 'undefined') return false;
     
-    // Use LIFF SDK's isInClient() method - DO NOT use user-agent matching
+    // Use LIFF SDK's isInClient() method - PRIMARY check
     // Check if window.liff exists and call isInClient()
     const liff = (window as any).liff;
     
@@ -205,7 +214,23 @@ class LiffService {
     
     // Fallback: if liff exists but isInClient is not available, assume LINE browser
     // This handles cases where LIFF SDK is loaded but not fully initialized
-    return !!liff;
+    if (liff) {
+      return true;
+    }
+    
+    // Additional fallback: Check URL patterns and user agent
+    // This handles cases where window.liff is not injected yet but we're in LINE browser
+    const currentUrl = window.location.href;
+    const urlParams = new URLSearchParams(window.location.search);
+    const hasLiffLineMe = currentUrl.includes('liff.line.me');
+    const hasLiffId = urlParams.has('liffId') || urlParams.has('liff.id');
+    
+    // Check user agent for LINE browser
+    const userAgent = window.navigator.userAgent;
+    const isLineUserAgent = userAgent.includes('Line/') || userAgent.includes('LINE/');
+    
+    // If URL patterns or user agent suggest LINE browser, return true
+    return hasLiffLineMe || hasLiffId || isLineUserAgent;
   }
 
   private saveProfileToStorage(): void {
