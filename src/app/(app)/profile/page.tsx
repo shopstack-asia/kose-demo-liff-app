@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, Avatar, Typography, Tabs, Tag, Button, Empty, message } from 'antd';
-import { EditOutlined, GiftOutlined, UserOutlined } from '@ant-design/icons';
+import { EditOutlined, GiftOutlined, UserOutlined, LogoutOutlined } from '@ant-design/icons';
 import { PageHeader } from '@/components/layout/page_header';
 import { LoadingScreen } from '@/components/layout/loading_screen';
 import { apiClient } from '@/lib/api_client';
@@ -524,10 +524,37 @@ export default function ProfilePage() {
 
             {/* Tier Expiry */}
             {profile.tier_expiry && (
-              <Text type="secondary" style={{ fontSize: 12, display: 'block' }}>
+              <Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 24 }}>
                 Valid until {formatDate(profile.tier_expiry)}
               </Text>
             )}
+
+            {/* Sign Out Button */}
+            <Button
+              type="default"
+              danger
+              icon={<LogoutOutlined />}
+              onClick={() => {
+                // Clear localStorage
+                if (typeof window !== 'undefined') {
+                  localStorage.clear();
+                  // Close the browser tab/window
+                  window.close();
+                  // If window.close() doesn't work (some browsers block it), redirect to a blank page
+                  setTimeout(() => {
+                    window.location.href = 'about:blank';
+                  }, 100);
+                }
+              }}
+              style={{
+                marginTop: 16,
+                borderRadius: 12,
+                height: 40,
+                fontWeight: 500,
+              }}
+            >
+              Sign Out
+            </Button>
           </div>
         </Card>
 
