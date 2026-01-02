@@ -26,19 +26,6 @@ export function RouteGuard({ children }: RouteGuardProps) {
   const router = useRouter();
   const pathname = usePathname();
   const [checking, setChecking] = useState(true);
-  const [debugInfo, setDebugInfo] = useState<{
-    pathname: string;
-    hasLocalStorage: boolean;
-    isLineBrowser: boolean | null;
-    liffLoggedIn: boolean | null;
-    redirectTarget: string | null;
-  }>({
-    pathname: '',
-    hasLocalStorage: false,
-    isLineBrowser: null,
-    liffLoggedIn: null,
-    redirectTarget: null,
-  });
 
   useEffect(() => {
     async function checkAuth() {
@@ -56,13 +43,6 @@ export function RouteGuard({ children }: RouteGuardProps) {
           const customer = registrationData?.customer || registrationData?.data?.customer;
           if (customer) {
             hasLocalStorage = true;
-            setDebugInfo({
-              pathname,
-              hasLocalStorage: true,
-              isLineBrowser: null,
-              liffLoggedIn: null,
-              redirectTarget: null,
-            });
             setChecking(false);
             return;
           }
@@ -100,11 +80,15 @@ export function RouteGuard({ children }: RouteGuardProps) {
       const currentUrl = window.location.href;
       const hasLiffLineMe = currentUrl.includes('liff.line.me');
       const hasLiffId = urlParams.has('liffId') || urlParams.has('liff.id');
+      const userAgent = typeof window !== 'undefined' ? window.navigator.userAgent : '';
 
-      // Wait for window.liff to be injected (max 2 seconds)
+      // Check user agent for LINE browser
+      const isLineUserAgent = userAgent.includes('Line/') || userAgent.includes('LINE/');
+      
+      // Wait for window.liff to be injected (max 5 seconds)
       let liffObj = (window as any).liff;
       let waitCount = 0;
-      const maxWait = 20; // 20 * 100ms = 2 seconds
+      const maxWait = 50; // 50 * 100ms = 5 seconds
 
       while (!liffObj && waitCount < maxWait) {
         await new Promise(resolve => setTimeout(resolve, 100));
@@ -115,27 +99,42 @@ export function RouteGuard({ children }: RouteGuardProps) {
       if (liffObj) {
         // Try to initialize LIFF to check if in LINE browser
         try {
+          // Wait for LIFF SDK to be fully ready before checking isInClient
+          // Sometimes isInClient() is not available immediately after window.liff appears
+          let isInClientAvailable = typeof liffObj.isInClient === 'function';
+          let waitForIsInClient = 0;
+          const maxWaitForIsInClient = 20; // 2 seconds
+          
+          while (!isInClientAvailable && waitForIsInClient < maxWaitForIsInClient) {
+            await new Promise(resolve => setTimeout(resolve, 100));
+            isInClientAvailable = typeof liffObj.isInClient === 'function';
+            waitForIsInClient++;
+          }
+
           const initResult = await liff.init(liff_app_id);
+          
           if (initResult.success) {
-            if (typeof liffObj.isInClient === 'function') {
-              isLineBrowser = liffObj.isInClient() === true;
+            if (isInClientAvailable) {
+              const isInClientResult = liffObj.isInClient();
+              isLineBrowser = isInClientResult === true;
             } else {
-              isLineBrowser = true; // Assume LINE Browser if window.liff exists
+              // If window.liff exists but isInClient is still not available after waiting, assume LINE Browser
+              isLineBrowser = true;
             }
             liffLoggedIn = liff.isLoggedIn();
           } else {
-            // If init fails, check URL patterns
-            if (hasLiffLineMe || hasLiffId) {
+            // If init fails, check URL patterns and user agent
+            if (hasLiffLineMe || hasLiffId || isLineUserAgent) {
               isLineBrowser = true;
             }
           }
         } catch (error) {
-          // If init throws error, check URL patterns
-          if (hasLiffLineMe || hasLiffId) {
+          // If init throws error, check URL patterns and user agent
+          if (hasLiffLineMe || hasLiffId || isLineUserAgent) {
             isLineBrowser = true;
           }
         }
-      } else if (hasLiffLineMe || hasLiffId) {
+      } else if (hasLiffLineMe || hasLiffId || isLineUserAgent) {
         isLineBrowser = true;
       }
 
@@ -147,13 +146,6 @@ export function RouteGuard({ children }: RouteGuardProps) {
           const initResult = await liff.init(liff_app_id);
           if (!initResult.success && !liff.isLoggedIn()) {
             if (initResult.error === 'NOT_IN_LINE' || initResult.error === 'NOT_LOGGED_IN') {
-              setDebugInfo({
-                pathname,
-                hasLocalStorage: false,
-                isLineBrowser: true,
-                liffLoggedIn: false,
-                redirectTarget: '/terms',
-              });
               await liff.login();
               return;
             }
@@ -162,24 +154,10 @@ export function RouteGuard({ children }: RouteGuardProps) {
 
         // Check if logged in
         if (!liff.isLoggedIn()) {
-          setDebugInfo({
-            pathname,
-            hasLocalStorage: false,
-            isLineBrowser: true,
-            liffLoggedIn: false,
-            redirectTarget: '/terms',
-          });
           await liff.login();
           return;
         }
 
-        setDebugInfo({
-          pathname,
-          hasLocalStorage: false,
-          isLineBrowser: true,
-          liffLoggedIn: true,
-          redirectTarget: '/terms',
-        });
         router.replace('/terms');
         return;
       } else {
@@ -187,13 +165,6 @@ export function RouteGuard({ children }: RouteGuardProps) {
         const savedLang = localStorage.getItem('preferred_language');
         const redirectPath = savedLang ? '/login' : '/language';
 
-        setDebugInfo({
-          pathname,
-          hasLocalStorage: false,
-          isLineBrowser: false,
-          liffLoggedIn: null,
-          redirectTarget: redirectPath,
-        });
         router.replace(redirectPath);
         return;
       }
