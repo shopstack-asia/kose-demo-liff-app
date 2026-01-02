@@ -103,7 +103,7 @@ export function RouteGuard({ children }: RouteGuardProps) {
       // Wait for window.liff to be injected (max 5 seconds)
       let liffObj = (window as any).liff;
       let waitCount = 0;
-      const maxWait = 50; // 50 * 100ms = 5 seconds
+      const maxWait = 1; // 1 * 100ms = 1 seconds
 
       while (!liffObj && waitCount < maxWait) {
         await new Promise(resolve => setTimeout(resolve, 100));
