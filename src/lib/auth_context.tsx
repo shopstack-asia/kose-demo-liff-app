@@ -26,13 +26,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const checkAuth = useCallback(async () => {
     try {
-      // Check localStorage first
+      // Check localStorage first (for OTP login users)
       if (typeof window !== 'undefined') {
         try {
           const stored = localStorage.getItem('kose_registration');
+          
           if (stored) {
             const registrationData = JSON.parse(stored);
-            if (registrationData && registrationData.customer) {
+            // Check if registration data exists and has customer object
+            // Support both formats: { customer: {...} } and { success: true, data: { customer: {...} } }
+            const customer = registrationData?.customer || registrationData?.data?.customer;
+            if (customer) {
               // User is registered, set status as existing
               setStatus((prev) => ({
                 ...prev,
@@ -48,8 +52,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       }
 
+      // If no localStorage data, check LIFF profile (for LINE users)
       const profile = liff.getProfile();
+      
       if (!profile) {
+        // No LIFF profile and no localStorage data - user not authenticated
         setStatus((prev) => ({
           ...prev,
           isAuthenticated: false,
@@ -57,7 +64,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }));
         return;
       }
-
+      
       const response = await apiClient.patch<{
         status: 'new' | 'existing' | 'profile_incomplete' | 'terms_not_accepted';
         customer?: unknown;
@@ -92,16 +99,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    // Only check if LIFF is initialized
-    if (liff.isLoggedIn()) {
-      checkAuth();
-    } else {
-      setStatus((prev) => ({
-        ...prev,
-        isAuthenticated: false,
-        isLoading: false,
-      }));
-    }
+    // Always check auth - it will check localStorage first (for OTP users)
+    // and then check LIFF profile (for LINE users)
+    checkAuth();
   }, [checkAuth]);
 
   useEffect(() => {

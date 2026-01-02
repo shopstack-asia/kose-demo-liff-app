@@ -28,3 +28,4 @@ export function GatedLayout({ children }: GatedLayoutProps) {
   );
 }
 
+

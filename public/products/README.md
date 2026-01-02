@@ -33,3 +33,4 @@ Placeholder images are being used. To use real KOSE product images:
 
 Images are referenced in `src/data/products.ts` using paths like `/products/sekkisei-lotion.jpg`
 
+

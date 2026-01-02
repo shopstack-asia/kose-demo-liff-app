@@ -2,8 +2,8 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Button, Card, Form, Input, InputNumber, DatePicker, message } from 'antd';
-import { CameraOutlined, ShoppingOutlined, DownOutlined } from '@ant-design/icons';
+import { Button, Card, Form, Input, InputNumber, message } from 'antd';
+import { CameraOutlined, ShoppingOutlined, DownOutlined, CalendarOutlined } from '@ant-design/icons';
 import { PageHeader } from '@/components/layout/page_header';
 import { LoadingScreen } from '@/components/layout/loading_screen';
 import { apiClient } from '@/lib/api_client';
@@ -11,6 +11,7 @@ import { liff } from '@/lib/liff';
 import { koseStores } from '@/data/stores';
 import { StorePickerDrawer } from '@/components/common/store_picker_drawer';
 import { ImagePickerDrawer } from '@/components/common/image_picker_drawer';
+import { DatePickerDrawer } from '@/components/common/date_picker_drawer';
 import dayjs from 'dayjs';
 
 export default function PurchasePage() {
@@ -22,6 +23,7 @@ export default function PurchasePage() {
   const [receiptImage, setReceiptImage] = useState<string>('');
   const [storePickerOpen, setStorePickerOpen] = useState(false);
   const [imagePickerOpen, setImagePickerOpen] = useState(false);
+  const [datePickerOpen, setDatePickerOpen] = useState(false);
   const galleryInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
 
@@ -29,9 +31,28 @@ export default function PurchasePage() {
     async function loadCustomer() {
       try {
         const lineProfile = liff.getProfile();
+        
         if (!lineProfile) {
-          router.push('/');
+          // RouteGuard handles authentication - just return
           return;
+        }
+
+        // Check localStorage first
+        if (typeof window !== 'undefined') {
+          const stored = localStorage.getItem('kose_registration');
+          if (stored) {
+            try {
+              const registrationData = JSON.parse(stored);
+              const customer = registrationData?.customer || registrationData?.data?.customer;
+              if (customer?.id) {
+                setCustomerId(customer.id);
+                setLoading(false);
+                return;
+              }
+            } catch (error) {
+              // Continue to API call
+            }
+          }
         }
 
         const response = await apiClient.patch<{
@@ -191,10 +212,23 @@ export default function PurchasePage() {
             label="Purchase Date"
             rules={[{ required: true, message: 'Please select purchase date' }]}
           >
-            <DatePicker
-              size="large"
-              style={{ width: '100%' }}
-              format="YYYY-MM-DD"
+            <div onClick={() => setDatePickerOpen(true)} style={{ cursor: 'pointer' }}>
+              <Input
+                size="large"
+                placeholder="Select date"
+                readOnly
+                value={form.getFieldValue('purchase_date') ? form.getFieldValue('purchase_date').format('YYYY-MM-DD') : ''}
+                suffix={<CalendarOutlined style={{ color: '#999' }} />}
+                style={{ cursor: 'pointer', pointerEvents: 'none' }}
+              />
+            </div>
+            <DatePickerDrawer
+              open={datePickerOpen}
+              onClose={() => setDatePickerOpen(false)}
+              value={form.getFieldValue('purchase_date')}
+              onChange={(date) => {
+                form.setFieldValue('purchase_date', date);
+              }}
               maxDate={dayjs()}
             />
           </Form.Item>

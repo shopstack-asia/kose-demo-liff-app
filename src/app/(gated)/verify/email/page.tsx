@@ -112,8 +112,6 @@ function VerifyEmailContent() {
             line_user_id: lineUserId,
           });
 
-          console.log('Register response:', registerResponse);
-
           if (registerResponse.success) {
             // Store registration data in localStorage
             // API returns { success: true, data: { customer: {...} } }
@@ -213,8 +211,6 @@ function VerifyEmailContent() {
           customer_id: customerId,
           line_user_id: lineUserId,
         });
-
-        console.log('Register response (skip):', registerResponse);
 
         if (registerResponse.success) {
           // Store registration data in localStorage

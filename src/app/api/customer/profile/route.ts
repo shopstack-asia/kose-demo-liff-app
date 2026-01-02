@@ -3,15 +3,30 @@ import { customerMock, CustomerProfile, CustomerStatus } from '@/mock/customer';
 
 export async function GET(request: NextRequest) {
   const lineUserId = request.nextUrl.searchParams.get('line_user_id') || '';
+  const customerId = request.nextUrl.searchParams.get('customer_id') || '';
 
-  if (!lineUserId) {
+  if (!lineUserId && !customerId) {
     return NextResponse.json(
-      { success: false, error: 'Line user ID required' },
+      { success: false, error: 'Line user ID or Customer ID required' },
       { status: 400 }
     );
   }
 
-  const status = customerMock.getStatus(lineUserId);
+  let customer = null;
+  if (customerId) {
+    customer = customerMock.findById(customerId);
+  } else if (lineUserId) {
+    customer = customerMock.findByLineUserId(lineUserId);
+  }
+
+  if (!customer) {
+    return NextResponse.json(
+      { success: false, error: 'Customer not found' },
+      { status: 404 }
+    );
+  }
+
+  const status = customerMock.getStatus(customer.line_user_id || customerId);
   return NextResponse.json({ success: true, data: status });
 }
 

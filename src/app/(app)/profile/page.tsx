@@ -43,46 +43,87 @@ export default function ProfilePage() {
   useEffect(() => {
     async function loadProfile() {
       try {
-        const lineProfile = liff.getProfile();
-        if (!lineProfile) {
-          router.push('/');
-          return;
-        }
+        // Check localStorage first - this is the primary data source
+        if (typeof window !== 'undefined') {
+          const stored = localStorage.getItem('kose_registration');
+          if (stored) {
+            try {
+              const registrationData = JSON.parse(stored);
+              const customer = registrationData?.customer || registrationData?.data?.customer;
+              if (customer) {
+                setProfile(customer as CustomerProfile);
 
-        const response = await apiClient.patch<{
-          status: string;
-          customer?: CustomerProfile;
-        }>('/customer/profile', {
-          line_user_id: lineProfile.userId,
-        });
+                // Load points
+                if (customer.id) {
+                  const pointsResponse = await apiClient.get<{ 
+                    available_points: number;
+                    expiring_points?: number;
+                    expiring_date?: string;
+                  }>(`/customer/points?customer_id=${customer.id}`);
+                  
+                  if (pointsResponse.success && pointsResponse.data) {
+                    setPoints(pointsResponse.data.available_points || 0);
+                    setExpiringPoints(pointsResponse.data.expiring_points || 0);
+                    setExpiringDate(pointsResponse.data.expiring_date || null);
+                  }
 
-        if (response.success && response.data?.customer) {
-          const customer = response.data.customer;
-          setProfile(customer);
+                  // Load mock coupons
+                  const mockCoupons = profileCouponsMock.getMyCoupons(customer.id);
+                  setCoupons(mockCoupons);
 
-          // Load points
-          if (customer.id) {
-            const pointsResponse = await apiClient.get<{ 
-              available_points: number;
-              expiring_points?: number;
-              expiring_date?: string;
-            }>(`/customer/points?customer_id=${customer.id}`);
-            
-            if (pointsResponse.success && pointsResponse.data) {
-              setPoints(pointsResponse.data.available_points || 0);
-              setExpiringPoints(pointsResponse.data.expiring_points || 0);
-              setExpiringDate(pointsResponse.data.expiring_date || null);
+                  // Load mock point history
+                  const mockHistory = profilePointHistoryMock.getHistory(customer.id);
+                  setTransactions(mockHistory);
+                }
+                setLoading(false);
+                return;
+              }
+            } catch (error) {
+              console.error('Error parsing localStorage:', error);
             }
-
-            // Load mock coupons
-            const mockCoupons = profileCouponsMock.getMyCoupons(customer.id);
-            setCoupons(mockCoupons);
-
-            // Load mock point history
-            const mockHistory = profilePointHistoryMock.getHistory(customer.id);
-            setTransactions(mockHistory);
           }
         }
+
+        // If no localStorage, try to get from API using lineProfile (optional fallback)
+        const lineProfile = liff.getProfile();
+        
+        if (lineProfile) {
+          const response = await apiClient.patch<{
+            status: string;
+            customer?: CustomerProfile;
+          }>('/customer/profile', {
+            line_user_id: lineProfile.userId,
+          });
+
+          if (response.success && response.data?.customer) {
+            const customer = response.data.customer;
+            setProfile(customer);
+
+            // Load points
+            if (customer.id) {
+              const pointsResponse = await apiClient.get<{ 
+                available_points: number;
+                expiring_points?: number;
+                expiring_date?: string;
+              }>(`/customer/points?customer_id=${customer.id}`);
+              
+              if (pointsResponse.success && pointsResponse.data) {
+                setPoints(pointsResponse.data.available_points || 0);
+                setExpiringPoints(pointsResponse.data.expiring_points || 0);
+                setExpiringDate(pointsResponse.data.expiring_date || null);
+              }
+
+              // Load mock coupons
+              const mockCoupons = profileCouponsMock.getMyCoupons(customer.id);
+              setCoupons(mockCoupons);
+
+              // Load mock point history
+              const mockHistory = profilePointHistoryMock.getHistory(customer.id);
+              setTransactions(mockHistory);
+            }
+          }
+        }
+        // If no localStorage and no lineProfile, RouteGuard will handle redirect
       } catch (error) {
         console.error('Failed to load profile:', error);
       } finally {

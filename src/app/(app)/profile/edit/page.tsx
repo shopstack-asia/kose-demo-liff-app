@@ -43,7 +43,7 @@ export default function EditProfilePage() {
       try {
         const lineProfile = liff.getProfile();
         if (!lineProfile) {
-          router.push('/');
+          // RouteGuard handles authentication - just return
           return;
         }
 

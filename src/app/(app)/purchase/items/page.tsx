@@ -45,7 +45,7 @@ export default function PurchaseItemsPage() {
       try {
         const lineProfile = liff.getProfile();
         if (!lineProfile) {
-          router.push('/');
+          // RouteGuard handles authentication - just return
           return;
         }
 

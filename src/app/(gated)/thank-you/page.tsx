@@ -4,11 +4,13 @@ import { useRouter } from 'next/navigation';
 import { Card, Typography, Button } from 'antd';
 import { CheckCircleOutlined } from '@ant-design/icons';
 import { PageHeader } from '@/components/layout/page_header';
+import { useAuthStatus } from '@/lib/auth_context';
 
 const { Paragraph } = Typography;
 
 export default function ThankYouPage() {
   const router = useRouter();
+  const { refresh } = useAuthStatus();
 
   // Remove auto-redirect, let user choose
   // useEffect(() => {
@@ -41,7 +43,11 @@ export default function ThankYouPage() {
           type="primary"
           block
           size="large"
-          onClick={() => router.push('/purchase')}
+          onClick={async () => {
+            // Refresh auth status before navigating to ensure customerStatus is updated
+            await refresh();
+            router.push('/purchase');
+          }}
           style={{ marginBottom: 12 }}
         >
           Submit Purchase
@@ -50,7 +56,11 @@ export default function ThankYouPage() {
         <Button
           block
           size="large"
-          onClick={() => router.push('/profile')}
+          onClick={async () => {
+            // Refresh auth status before navigating to ensure customerStatus is updated
+            await refresh();
+            router.push('/profile');
+          }}
         >
           Go to Profile
         </Button>

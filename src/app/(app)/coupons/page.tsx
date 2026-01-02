@@ -37,23 +37,21 @@ export default function CouponsPage() {
     async function loadData() {
       try {
         const lineProfile = liff.getProfile();
-        if (!lineProfile) {
-          router.push('/');
-          return;
+        
+        // Load customer ID only if lineProfile exists (for claiming coupons)
+        if (lineProfile) {
+          const profileResponse = await apiClient.patch<{
+            customer?: { id: string };
+          }>('/customer/profile', {
+            line_user_id: lineProfile.userId,
+          });
+
+          if (profileResponse.success && profileResponse.data?.customer?.id) {
+            setCustomerId(profileResponse.data.customer.id);
+          }
         }
 
-        // Load customer ID
-        const profileResponse = await apiClient.patch<{
-          customer?: { id: string };
-        }>('/customer/profile', {
-          line_user_id: lineProfile.userId,
-        });
-
-        if (profileResponse.success && profileResponse.data?.customer?.id) {
-          setCustomerId(profileResponse.data.customer.id);
-        }
-
-        // Load coupons
+        // Load coupons - this is a public catalog, so we can load it without authentication
         const couponsResponse = await apiClient.get<Coupon[]>('/coupons/catalog');
         if (couponsResponse.success && couponsResponse.data) {
           setCoupons(couponsResponse.data);

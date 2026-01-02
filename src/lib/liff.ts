@@ -45,16 +45,46 @@ class LiffService {
     // Store LIFF App ID
     this.liffAppId = liffAppId;
 
-    // Check if running in LINE browser
-    this.isInLineBrowser = this.checkLineBrowser();
-
     try {
       // In production: use real LIFF SDK
       // const liff = (await import('@line/liff')).default;
       // await liff.init({ liffId: liffAppId });
       
-      // Mock initialization for development
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      // Check if window.liff exists (injected by LINE Browser)
+      // If it exists, try to initialize it
+      if (typeof window !== 'undefined' && (window as any).liff) {
+        const liffObj = (window as any).liff;
+        // If LIFF SDK is available, try to initialize it
+        if (typeof liffObj.init === 'function') {
+          try {
+            await liffObj.init({ liffId: liffAppId });
+          } catch (error) {
+            console.warn('LIFF SDK init error:', error);
+          }
+        }
+      } else {
+        // Mock initialization for development (when window.liff doesn't exist)
+        await new Promise((resolve) => setTimeout(resolve, 500));
+      }
+      
+      // CRITICAL: Check window.liff FIRST (injected by LINE Browser)
+      // When opened via LINE Browser, window.liff is automatically available
+      // This check happens BEFORE checkLineBrowser() to detect LINE Browser entry early
+      if (typeof window !== 'undefined' && (window as any).liff) {
+        const liffObj = (window as any).liff;
+        // If window.liff exists, this is definitely a LINE Browser entry
+        // Use liff.isInClient() as the PRIMARY source of truth
+        if (liffObj && typeof liffObj.isInClient === 'function') {
+          this.isInLineBrowser = liffObj.isInClient() === true;
+        } else {
+          // If window.liff exists but isInClient is not available, assume LINE Browser
+          this.isInLineBrowser = true;
+        }
+      } else {
+        // If window.liff doesn't exist, use checkLineBrowser() as fallback
+        // This handles mock environment or non-LINE browsers
+        this.isInLineBrowser = this.checkLineBrowser();
+      }
       
       // Check if we have OAuth callback code (after LINE login redirect)
       // MUST check this FIRST before any other logic
@@ -82,15 +112,37 @@ class LiffService {
         }
       }
       
-      // If NOT in LINE browser AND not already logged in, redirect to LINE login
+      // If NOT in LINE browser AND not already logged in, check if we're in a LIFF flow
+      // If URL suggests LIFF entry (has liffId param or liff.line.me), create mock profile
       if (!this.isInLineBrowser && !this.initialized) {
+        if (typeof window !== 'undefined') {
+          const currentUrl = window.location.href;
+          const urlParams = new URLSearchParams(window.location.search);
+          const hasLiffLineMe = currentUrl.includes('liff.line.me');
+          const hasLiffId = urlParams.has('liffId') || urlParams.has('liff.id');
+          
+          // If URL suggests LIFF entry, create mock profile for development
+          if (hasLiffLineMe || hasLiffId) {
+            this.initialized = true;
+            this.profile = {
+              userId: 'mock_user_' + Date.now(),
+              displayName: 'KOSE Member',
+              pictureUrl: 'https://via.placeholder.com/150',
+              statusMessage: 'Hello KOSE',
+            };
+            // Save to sessionStorage
+            this.saveProfileToStorage();
+            return { success: true };
+          }
+        }
+        
         // In production: liff.login({ redirectUri: window.location.href });
         // For now, return error to trigger redirect logic
         return { success: false, error: 'NOT_IN_LINE' };
       }
       
       // In LINE browser - check login status
-      // In production:
+      // In production: liff.isLoggedIn()
       // const loggedIn = liff.isLoggedIn();
       // if (!loggedIn) {
       //   liff.login({ redirectUri: window.location.href });
@@ -127,7 +179,12 @@ class LiffService {
     if (liffAppId) {
       // Extract Channel ID from LIFF App ID (format: "2007413561-1tM0q5cE" -> "2007413561")
       const channelId = liffAppId.split('-')[0];
-      const redirectUri = encodeURIComponent(window.location.href);
+      
+      // Use root URL as redirect_uri instead of current page URL
+      // This ensures redirect_uri matches what's registered in LINE Developers Console
+      const baseUrl = window.location.origin;
+      const redirectUri = encodeURIComponent(baseUrl + '/');
+      
       const loginUrl = `https://access.line.me/oauth2/v2.1/authorize?response_type=code&client_id=${channelId}&redirect_uri=${redirectUri}&state=login&scope=profile%20openid`;
       
       window.location.href = loginUrl;
@@ -137,14 +194,18 @@ class LiffService {
   private checkLineBrowser(): boolean {
     if (typeof window === 'undefined') return false;
     
-    // Check User-Agent for LINE browser
-    const userAgent = window.navigator.userAgent || '';
-    const isLineBrowser = /Line/i.test(userAgent);
+    // Use LIFF SDK's isInClient() method - DO NOT use user-agent matching
+    // Check if window.liff exists and call isInClient()
+    const liff = (window as any).liff;
     
-    // Also check for LIFF environment
-    const isLiff = typeof window !== 'undefined' && (window as any).liff;
+    if (liff && typeof liff.isInClient === 'function') {
+      const result = liff.isInClient();
+      return result;
+    }
     
-    return isLineBrowser || isLiff;
+    // Fallback: if liff exists but isInClient is not available, assume LINE browser
+    // This handles cases where LIFF SDK is loaded but not fully initialized
+    return !!liff;
   }
 
   private saveProfileToStorage(): void {
@@ -174,6 +235,21 @@ class LiffService {
   }
 
   getProfile(): LineProfile | null {
+    // ALWAYS try to load from sessionStorage if profile is null
+    // This ensures profile is available even if LIFF service instance was reset
+    if (!this.profile && typeof window !== 'undefined') {
+      try {
+        const savedProfile = sessionStorage.getItem(this.STORAGE_KEY);
+        const savedInitialized = sessionStorage.getItem(this.STORAGE_INITIALIZED_KEY);
+        if (savedProfile && savedInitialized === 'true') {
+          this.profile = JSON.parse(savedProfile);
+          this.initialized = true;
+        }
+      } catch (error) {
+        console.warn('Failed to load profile from sessionStorage in getProfile:', error);
+      }
+    }
+    
     return this.profile;
   }
 
@@ -195,6 +271,42 @@ class LiffService {
     return this.isInLineBrowser;
   }
 
+  getLanguage(): string {
+    if (typeof window === 'undefined') return 'th-TH';
+    
+    // Use LIFF SDK's getLanguage() method
+    const liff = (window as any).liff;
+    if (liff && typeof liff.getLanguage === 'function') {
+      const lineLang = liff.getLanguage();
+      // Normalize language code
+      const normalization: Record<string, string> = {
+        'th': 'th-TH',
+        'en': 'en-US',
+        'ja': 'ja-JP',
+        'zh': 'zh-CN',
+      };
+      return normalization[lineLang] || lineLang;
+    }
+    
+    // Fallback: check browser language
+    if (typeof navigator !== 'undefined' && navigator.language) {
+      const browserLang = navigator.language.toLowerCase();
+      const normalization: Record<string, string> = {
+        'th': 'th-TH',
+        'th-th': 'th-TH',
+        'en': 'en-US',
+        'en-us': 'en-US',
+        'ja': 'ja-JP',
+        'ja-jp': 'ja-JP',
+        'zh': 'zh-CN',
+        'zh-cn': 'zh-CN',
+      };
+      return normalization[browserLang] || browserLang;
+    }
+    
+    return 'th-TH';
+  }
+
   logout(): void {
     this.initialized = false;
     this.profile = null;
@@ -213,6 +325,8 @@ export const liff = {
   closeWindow: () => liffInstance.closeWindow(),
   getLiffAppId: () => liffInstance.getLiffAppId(),
   isInLine: () => liffInstance.isInLine(),
+  isInClient: () => liffInstance.isInLine(), // Alias for consistency with LIFF SDK
+  getLanguage: () => liffInstance.getLanguage(),
   login: () => liffInstance.login(),
   logout: () => liffInstance.logout(),
 };

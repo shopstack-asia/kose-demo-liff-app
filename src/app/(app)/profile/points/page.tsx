@@ -28,7 +28,7 @@ export default function PointsHistoryPage() {
       try {
         const lineProfile = liff.getProfile();
         if (!lineProfile) {
-          router.push('/');
+          // RouteGuard handles authentication - just return
           return;
         }
 

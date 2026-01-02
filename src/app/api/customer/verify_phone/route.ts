@@ -4,8 +4,23 @@ import { customerMock } from '@/mock/customer';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { customer_id, otp_code } = body;
+    const { phone, customer_id, otp_code } = body;
 
+    // If phone provided but no customer_id or otp_code, this is a send OTP request
+    if (phone && !customer_id && !otp_code) {
+      // Mock: Generate customer_id and send OTP
+      const customerId = 'cust_phone_' + Date.now();
+      
+      return NextResponse.json({
+        success: true,
+        message: 'OTP sent to phone',
+        data: {
+          customer_id: customerId,
+        },
+      });
+    }
+
+    // Otherwise, this is a verify OTP request
     if (!customer_id || !otp_code) {
       return NextResponse.json(
         { success: false, error: 'Customer ID and OTP code required' },
@@ -15,8 +30,6 @@ export async function POST(request: NextRequest) {
 
     // Mock: Accept only OTP 999999
     if (otp_code === '999999') {
-      // For mock: always return success if OTP is correct
-      // Try to verify phone, but don't fail if customer doesn't exist yet
       customerMock.verifyPhone(customer_id);
       
       return NextResponse.json({

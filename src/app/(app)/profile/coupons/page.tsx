@@ -32,7 +32,7 @@ export default function MyCouponsPage() {
       try {
         const lineProfile = liff.getProfile();
         if (!lineProfile) {
-          router.push('/');
+          // RouteGuard handles authentication - just return
           return;
         }
 

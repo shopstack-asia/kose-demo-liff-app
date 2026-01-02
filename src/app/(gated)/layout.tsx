@@ -10,3 +10,4 @@ export default function GatedLayoutWrapper({
   return <GatedLayout>{children}</GatedLayout>;
 }
 
+
