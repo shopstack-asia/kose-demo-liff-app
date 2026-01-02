@@ -101,7 +101,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       if (detectedMethod === 'email') {
-        const response = await apiClient.post('/customer/verify_email', {
+        const response = await apiClient.post<{ customer_id: string }>('/customer/verify_email', {
           email: inputValue,
         });
         
@@ -114,7 +114,7 @@ export default function LoginPage() {
           message.error(response.error || t('common.error') || 'common.error');
         }
       } else {
-        const response = await apiClient.post('/customer/verify_phone', {
+        const response = await apiClient.post<{ customer_id: string }>('/customer/verify_phone', {
           phone: inputValue,
         });
         
@@ -518,7 +518,7 @@ export default function LoginPage() {
             type="primary"
             block
             size="large"
-            onClick={handleVerifyOtp}
+            onClick={() => handleVerifyOtp()}
             loading={loading}
             disabled={otp.length !== 6}
             style={{
