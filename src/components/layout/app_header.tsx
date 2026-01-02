@@ -1,20 +1,18 @@
 'use client';
 
 import Image from 'next/image';
-import { Select } from 'antd';
 import { useI18n } from '@/lib/i18n';
 import { useEffect, useState } from 'react';
+import { LanguagePickerDrawer } from '@/components/common/language_picker_drawer';
 
 export function AppHeader() {
   const { language, languages, setLanguage, normalizeLanguage } = useI18n();
   const [isLiffEntry, setIsLiffEntry] = useState<boolean | null>(null); // null = not checked yet
   const [mounted, setMounted] = useState(false);
+  const [languagePickerOpen, setLanguagePickerOpen] = useState(false);
 
   // Prevent hydration mismatch by only checking after mount
   useEffect(() => {
-    // #region agent log
-    fetch('http://127.0.0.1:7244/ingest/d4ad727a-3953-48f5-8df0-18b7a9d7a25d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app_header.tsx:15',message:'AppHeader useEffect - setting mounted',data:{},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'L'})}).catch(()=>{});
-    // #endregion
     setMounted(true);
     
     const checkLiffEntry = async () => {
@@ -23,14 +21,8 @@ export function AppHeader() {
         // Only check isInClient() if LIFF SDK is available and initialized
         if (liffObj && typeof liffObj.isInClient === 'function') {
           const isInClient = liffObj.isInClient() === true;
-          // #region agent log
-          fetch('http://127.0.0.1:7244/ingest/d4ad727a-3953-48f5-8df0-18b7a9d7a25d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app_header.tsx:22',message:'AppHeader - LIFF detected',data:{isInClient},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'L'})}).catch(()=>{});
-          // #endregion
           setIsLiffEntry(isInClient);
         } else {
-          // #region agent log
-          fetch('http://127.0.0.1:7244/ingest/d4ad727a-3953-48f5-8df0-18b7a9d7a25d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app_header.tsx:26',message:'AppHeader - No LIFF, setting false',data:{},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'L'})}).catch(()=>{});
-          // #endregion
           setIsLiffEntry(false);
         }
       } else {
@@ -50,6 +42,10 @@ export function AppHeader() {
     { code: 'ja-JP', name: '日本語', flag: '🇯🇵' },
     { code: 'zh-CN', name: '中文', flag: '🇨🇳' },
   ];
+
+  const currentLanguage = displayLanguages.find(
+    (lang) => normalizeLanguage(lang.code) === normalizeLanguage(language)
+  ) || displayLanguages[0];
 
   const handleLanguageChange = (value: string) => {
     setLanguage(value);
@@ -87,36 +83,52 @@ export function AppHeader() {
 
       {/* Language Switcher - Top Right (ONLY for non-LIFF entries) */}
       {/* Use suppressHydrationWarning to prevent hydration mismatch */}
-      {/* Server renders empty div, client renders Select after mount */}
+      {/* Server renders empty div, client renders button after mount */}
       <div 
         style={{ flex: 1, display: 'flex', justifyContent: 'flex-end' }}
         suppressHydrationWarning
       >
         {mounted && isLiffEntry === false && (
-          <Select
-            value={normalizeLanguage(language)}
-            onChange={handleLanguageChange}
-            style={{
-              width: 90,
-              minWidth: 70,
-            }}
-            size="small"
-            variant="borderless"
-            options={displayLanguages.map((lang) => ({
-              value: normalizeLanguage(lang.code),
-              label: (
-                <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  {lang.flag && <span style={{ fontSize: 14 }}>{lang.flag}</span>}
-                  <span style={{ fontSize: 13 }}>{lang.name}</span>
-                </span>
-              ),
-            }))}
-            dropdownStyle={{
-              borderRadius: 8,
-              minWidth: 120,
-            }}
-            popupMatchSelectWidth={false}
-          />
+          <>
+            <button
+              onClick={() => setLanguagePickerOpen(true)}
+              style={{
+                cursor: 'pointer',
+                border: 'none',
+                background: 'transparent',
+                padding: '4px 8px',
+                borderRadius: '4px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                transition: 'background-color 0.2s',
+                color: '#666',
+                fontSize: '13px',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#f5f5f5';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'transparent';
+              }}
+            >
+              {currentLanguage?.flag && (
+                <span style={{ fontSize: '14px' }}>{currentLanguage.flag}</span>
+              )}
+              <span>{currentLanguage?.name || 'Language'}</span>
+            </button>
+            <LanguagePickerDrawer
+              open={languagePickerOpen}
+              onClose={() => setLanguagePickerOpen(false)}
+              value={normalizeLanguage(language)}
+              onChange={handleLanguageChange}
+              languages={displayLanguages.map((lang) => ({
+                code: normalizeLanguage(lang.code),
+                name: lang.name,
+                flag: lang.flag,
+              }))}
+            />
+          </>
         )}
       </div>
     </div>
