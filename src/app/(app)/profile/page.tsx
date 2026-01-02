@@ -417,20 +417,13 @@ export default function ProfilePage() {
   ];
 
   return (
-    <div style={{ background: '#faf8f5', minHeight: '100vh', paddingBottom: 24 }}>
-      <PageHeader title="My Profile" />
+    <div className="page-container">
+      <PageHeader
+        title="My Profile"
+        subtitle="Manage your account and view your rewards"
+      />
 
-      {/* CONTENT CONTAINER - LAYERED CARD */}
-      <div
-        style={{
-          background: '#ffffff',
-          borderRadius: 24,
-          boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
-          margin: '0 16px',
-          padding: '24px',
-          marginTop: 8,
-        }}
-      >
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         {/* PREMIUM MEMBER CARD */}
         <Card
           style={{
