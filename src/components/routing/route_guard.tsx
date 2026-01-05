@@ -6,6 +6,7 @@ import { Spin } from 'antd';
 import Image from 'next/image';
 import { liff } from '@/lib/liff';
 import { apiClient } from '@/lib/api_client';
+import { getTargetPage, setTargetPage } from '@/lib/redirect_utils';
 
 interface RouteGuardProps {
   children: React.ReactNode;
@@ -156,39 +157,66 @@ export function RouteGuard({ children }: RouteGuardProps) {
         isLineBrowser = true;
       }
 
-      // STEP 3: Redirect based on LINE browser detection
-      
-      if (isLineBrowser) {
-        // LINE Browser → Initialize LIFF and redirect to terms
-        // Initialize LIFF if not already done
-        if (!liffObj) {
-          const initResult = await liff.init(liff_app_id);
-          if (!initResult.success && !liff.isLoggedIn()) {
-            if (initResult.error === 'NOT_IN_LINE') {
-              // NOT_IN_LINE means not in LINE browser - redirect to language/login
+      // STEP 3: Initialize LIFF and check login status
+      // Initialize LIFF if not already done
+      if (!liffObj) {
+        const initResult = await liff.init(liff_app_id);
+        if (!initResult.success && !liff.isLoggedIn()) {
+          if (initResult.error === 'NOT_IN_LINE') {
+            // NOT_IN_LINE means not in LINE browser - redirect to language/login
+            const savedLang = localStorage.getItem('preferred_language');
+            const redirectPath = savedLang ? '/login' : '/language';
+            router.replace(redirectPath);
+            setChecking(false);
+            return;
+          } else if (initResult.error === 'NOT_LOGGED_IN') {
+            // NOT_LOGGED_IN means in LINE browser but not logged in - call login
+            if (isLineBrowser) {
+              await liff.login();
+              return;
+            } else {
+              // Not LINE browser and not logged in - redirect to login
               const savedLang = localStorage.getItem('preferred_language');
               const redirectPath = savedLang ? '/login' : '/language';
               router.replace(redirectPath);
               setChecking(false);
               return;
-            } else if (initResult.error === 'NOT_LOGGED_IN') {
-              // NOT_LOGGED_IN means in LINE browser but not logged in - call login
-              await liff.login();
-              return;
             }
           }
         }
+      }
 
-        // Check if logged in
-        if (!liff.isLoggedIn()) {
-          await liff.login();
-          return;
+      // STEP 4: Check if user is logged in via LIFF (either LINE browser or web OAuth)
+      const isLiffLoggedIn = liff.isLoggedIn();
+      
+      if (isLiffLoggedIn) {
+        // User is logged in via LIFF (LINE browser or web OAuth)
+        // Check for target page first
+        const targetPage = getTargetPage();
+        
+        if (targetPage) {
+          // Preserve target page - will redirect after terms/register flow
+          setTargetPage(targetPage);
         }
-
+        
         router.replace('/terms');
         return;
+      } else if (isLineBrowser) {
+        // LINE Browser but not logged in - call login
+        // Preserve target page if exists
+        const targetPage = getTargetPage();
+        if (targetPage) {
+          setTargetPage(targetPage);
+        }
+        await liff.login();
+        return;
       } else {
-        // NOT LINE Browser → Redirect to language or login
+        // NOT LINE Browser and not logged in → Redirect to language or login
+        // Preserve target page if exists
+        const targetPage = getTargetPage();
+        if (targetPage) {
+          setTargetPage(targetPage);
+        }
         const savedLang = localStorage.getItem('preferred_language');
         const redirectPath = savedLang ? '/login' : '/language';
         router.replace(redirectPath);

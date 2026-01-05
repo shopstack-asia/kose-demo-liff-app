@@ -26,6 +26,39 @@ class LiffService {
       return { success: true };
     }
     
+    // IMPORTANT: Preserve query params from LIFF URL before any redirects
+    // LIFF may redirect and lose query params, so we save them early
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const pageParam = urlParams.get('page');
+      if (pageParam) {
+        try {
+          // Store page param in sessionStorage for later retrieval
+          sessionStorage.setItem('kose_liff_page_param', pageParam);
+        } catch (error) {
+          // Failed to preserve page param, ignore
+        }
+      }
+      
+      // Also check liff.state parameter
+      if (!pageParam) {
+        const liffState = urlParams.get('liff.state');
+        if (liffState) {
+          try {
+            const decodedState = decodeURIComponent(liffState);
+            const stateStr = decodedState.startsWith('?') ? decodedState.substring(1) : decodedState;
+            const stateParams = new URLSearchParams(stateStr);
+            const statePageParam = stateParams.get('page');
+            if (statePageParam) {
+              sessionStorage.setItem('kose_liff_page_param', statePageParam);
+            }
+          } catch (error) {
+            // Failed to parse liff.state, ignore
+          }
+        }
+      }
+    }
+    
     // Try to load profile from sessionStorage first
     if (typeof window !== 'undefined') {
       try {

@@ -6,6 +6,7 @@ import { Button, Card, Checkbox, Typography, Radio, message, Alert, Space } from
 import { apiClient } from '@/lib/api_client';
 import { liff } from '@/lib/liff';
 import { useAuthStatus } from '@/lib/auth_context';
+import { getTargetPage, clearTargetPage } from '@/lib/redirect_utils';
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -135,7 +136,17 @@ export default function TermsPage() {
       if (response.success) {
         message.success('Terms and consents accepted successfully');
         await refresh(); // Refresh auth status
-        router.push('/register');
+        
+        // Check for target page
+        const targetPage = getTargetPage();
+        if (targetPage) {
+          clearTargetPage();
+          // If target page exists, check if profile is complete
+          // If not complete, go to register first, then redirect to target
+          router.push('/register');
+        } else {
+          router.push('/register');
+        }
       } else {
         message.error('Failed to accept terms');
       }

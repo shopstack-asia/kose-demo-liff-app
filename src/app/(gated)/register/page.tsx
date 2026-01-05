@@ -11,6 +11,7 @@ import { useAuthStatus } from '@/lib/auth_context';
 import { DatePickerDrawer } from '@/components/common/date_picker_drawer';
 import { GenderPickerDrawer } from '@/components/common/gender_picker_drawer';
 import { ImagePickerDrawer } from '@/components/common/image_picker_drawer';
+import { getTargetPage, setTargetPage } from '@/lib/redirect_utils';
 import dayjs, { Dayjs } from 'dayjs';
 
 export default function RegisterPage() {
@@ -141,6 +142,13 @@ export default function RegisterPage() {
       if (response.success && response.data && response.data.customer) {
         const customer = response.data.customer;
         await refresh(); // Refresh auth status
+        
+        // Preserve target page for after verification
+        const targetPage = getTargetPage();
+        if (targetPage) {
+          setTargetPage(targetPage);
+        }
+        
         // Pass email in query params if provided
         const emailParam = values.email ? `&email=${encodeURIComponent(values.email)}` : '';
         router.push(`/verify/phone?customer_id=${customer.id}${emailParam}`);

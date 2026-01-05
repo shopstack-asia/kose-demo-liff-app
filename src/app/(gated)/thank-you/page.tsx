@@ -5,6 +5,7 @@ import { Card, Typography, Button } from 'antd';
 import { CheckCircleOutlined } from '@ant-design/icons';
 import { PageHeader } from '@/components/layout/page_header';
 import { useAuthStatus } from '@/lib/auth_context';
+import { getTargetPage, clearTargetPage } from '@/lib/redirect_utils';
 
 const { Paragraph } = Typography;
 
@@ -46,7 +47,15 @@ export default function ThankYouPage() {
           onClick={async () => {
             // Refresh auth status before navigating to ensure customerStatus is updated
             await refresh();
-            router.push('/purchase');
+            
+            // Check for target page first
+            const targetPage = getTargetPage();
+            if (targetPage) {
+              clearTargetPage();
+              router.push(targetPage);
+            } else {
+              router.push('/purchase/new');
+            }
           }}
           style={{ marginBottom: 12 }}
         >
@@ -59,7 +68,15 @@ export default function ThankYouPage() {
           onClick={async () => {
             // Refresh auth status before navigating to ensure customerStatus is updated
             await refresh();
-            router.push('/profile');
+            
+            // Check for target page first
+            const targetPage = getTargetPage();
+            if (targetPage) {
+              clearTargetPage();
+              router.push(targetPage);
+            } else {
+              router.push('/profile');
+            }
           }}
         >
           Go to Profile

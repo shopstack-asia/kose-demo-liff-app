@@ -20,6 +20,43 @@ export default function RootLayout({
         />
         <title>KOSE LIFF App</title>
         <meta name="description" content="KOSE LINE LIFF Application" />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                // Preserve query params from LIFF URL before any redirects
+                // This runs immediately when page loads, before React hydration
+                if (typeof window !== 'undefined' && typeof sessionStorage !== 'undefined') {
+                  try {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    let pageParam = urlParams.get('page');
+                    
+                    // Also check liff.state parameter (LIFF may pass params this way)
+                    if (!pageParam) {
+                      const liffState = urlParams.get('liff.state');
+                      if (liffState) {
+                        try {
+                          const decodedState = decodeURIComponent(liffState);
+                          const stateStr = decodedState.startsWith('?') ? decodedState.substring(1) : decodedState;
+                          const stateParams = new URLSearchParams(stateStr);
+                          pageParam = stateParams.get('page');
+                        } catch (error) {
+                          console.warn('[PreserveScript] Failed to parse liff.state:', error);
+                        }
+                      }
+                    }
+                    
+                    if (pageParam) {
+                      sessionStorage.setItem('kose_liff_page_param', pageParam);
+                    }
+                  } catch (error) {
+                    console.warn('[PreserveScript] Failed to preserve page param:', error);
+                  }
+                }
+              })();
+            `,
+          }}
+        />
       </head>
       <body>
         <ConfigProvider theme={koseTheme}>
