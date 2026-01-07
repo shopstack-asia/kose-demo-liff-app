@@ -50,6 +50,8 @@ export function validatePagePath(page: string | null): string | null {
     'purchase',
     'profile',
     'vouchers',
+    'offers',
+    'online_shops',
   ];
   
   // Check if path starts with a valid base path
@@ -58,7 +60,7 @@ export function validatePagePath(page: string | null): string | null {
   );
   
   // Also allow root-level paths that are safe
-  const safeRootPaths = ['home', 'purchase', 'profile', 'vouchers'];
+  const safeRootPaths = ['home', 'purchase', 'profile', 'vouchers', 'offers', 'online_shops'];
   if (safeRootPaths.includes(normalized)) {
     return '/' + normalized;
   }
