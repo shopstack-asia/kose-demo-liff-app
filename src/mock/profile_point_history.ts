@@ -25,8 +25,8 @@ export const mockProfilePointHistory: ProfilePointTransaction[] = [
     id: 'pt_profile_2',
     type: 'REDEEM',
     points: -300,
-    title: 'Coupon Redemption',
-    description: 'Redeemed Infinity Pure Moisture Bundle coupon',
+    title: 'Voucher Redemption',
+    description: 'Redeemed Infinity Pure Moisture Bundle voucher',
     date: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
   },
   {
@@ -49,8 +49,8 @@ export const mockProfilePointHistory: ProfilePointTransaction[] = [
     id: 'pt_profile_5',
     type: 'REDEEM',
     points: -500,
-    title: 'Coupon Redemption',
-    description: 'Redeemed Sekkisei Clear Wellness Set coupon',
+    title: 'Voucher Redemption',
+    description: 'Redeemed Sekkisei Clear Wellness Set voucher',
     date: new Date(Date.now() - 35 * 24 * 60 * 60 * 1000).toISOString(),
   },
   {

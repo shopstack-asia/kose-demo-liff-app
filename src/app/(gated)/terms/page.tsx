@@ -238,7 +238,7 @@ export default function TermsPage() {
             <strong>2. Points & Rewards</strong>
           </Paragraph>
           <Paragraph>
-            Points are earned through purchases and can be redeemed for coupons
+            Points are earned through purchases and can be redeemed for vouchers
             and rewards. Points may expire according to our policy. KOSE
             reserves the right to modify the points system at any time.
           </Paragraph>

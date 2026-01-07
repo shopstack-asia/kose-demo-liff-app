@@ -37,7 +37,7 @@ export default function ThankYouPage() {
       <Card>
         <Paragraph style={{ textAlign: 'center', fontSize: 16, marginBottom: 24 }}>
           Your account has been successfully created. You can now start earning
-          points and redeeming exclusive coupons.
+          points and redeeming exclusive vouchers.
         </Paragraph>
 
         <Button

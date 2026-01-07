@@ -4,7 +4,7 @@ import { RouteGuard } from '@/components/routing/route_guard';
 import { AppLayout } from '@/components/layout/app_layout';
 
 /**
- * App Layout - Wraps protected routes (/home, /purchase, /coupon, /profile)
+ * App Layout - Wraps protected routes (/home, /purchase, /voucher, /profile)
  * 
  * Uses RouteGuard as single source of truth for authentication.
  * RouteGuard handles all redirect logic - this layout just wraps children.

@@ -1,6 +1,6 @@
 'use client';
 
-import { HomeOutlined, ShoppingOutlined, TagOutlined, UserOutlined } from '@ant-design/icons';
+import { HomeOutlined, GiftOutlined, TagOutlined, UserOutlined } from '@ant-design/icons';
 
 interface BottomNavigationProps {
   currentPath: string;
@@ -10,8 +10,8 @@ interface BottomNavigationProps {
 export function BottomNavigation({ currentPath, onTabClick }: BottomNavigationProps) {
   const tabs = [
     { key: 'home', path: '/home', label: 'Home', icon: <HomeOutlined /> },
-    { key: 'purchase', path: '/purchase', label: 'Purchase', icon: <ShoppingOutlined /> },
-    { key: 'coupons', path: '/coupons', label: 'Coupons', icon: <TagOutlined /> },
+    { key: 'offers', path: '/offers', label: 'Offers', icon: <GiftOutlined /> },
+    { key: 'vouchers', path: '/vouchers', label: 'Vouchers', icon: <TagOutlined /> },
     { key: 'profile', path: '/profile', label: 'Profile', icon: <UserOutlined /> },
   ];
 
@@ -22,11 +22,11 @@ export function BottomNavigation({ currentPath, onTabClick }: BottomNavigationPr
     if (path === '/profile') {
       return currentPath === '/profile' || currentPath.startsWith('/profile/');
     }
-    if (path === '/purchase') {
-      return currentPath === '/purchase' || currentPath.startsWith('/purchase/');
+    if (path === '/offers') {
+      return currentPath === '/offers' || currentPath.startsWith('/offers/');
     }
-    if (path === '/coupons') {
-      return currentPath === '/coupons' || currentPath.startsWith('/coupons/');
+    if (path === '/vouchers') {
+      return currentPath === '/vouchers' || currentPath.startsWith('/vouchers/');
     }
     return currentPath === path;
   };

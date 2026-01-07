@@ -3,15 +3,16 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, Avatar, Typography, Tabs, Tag, Button, Empty, message } from 'antd';
-import { EditOutlined, GiftOutlined, UserOutlined, LogoutOutlined } from '@ant-design/icons';
+import { EditOutlined, GiftOutlined, UserOutlined, LogoutOutlined, CrownOutlined, StarOutlined, TrophyOutlined } from '@ant-design/icons';
 import { PageHeader } from '@/components/layout/page_header';
 import { LoadingScreen } from '@/components/layout/loading_screen';
 import { apiClient } from '@/lib/api_client';
 import { liff } from '@/lib/liff';
 import dayjs from 'dayjs';
-import { profileCouponsMock, ProfileCoupon } from '@/mock/profile_coupons';
+import { profileVouchersMock, ProfileVoucher } from '@/mock/profile_vouchers';
 import { profilePointHistoryMock, ProfilePointTransaction } from '@/mock/profile_point_history';
-import { RedeemDrawer } from '@/components/coupon/redeem_drawer';
+import { RedeemDrawer } from '@/components/voucher/redeem_drawer';
+import { QRCodeSVG } from 'qrcode.react';
 
 const { Title, Text } = Typography;
 
@@ -34,11 +35,11 @@ export default function ProfilePage() {
   const [points, setPoints] = useState(0);
   const [expiringPoints, setExpiringPoints] = useState(0);
   const [expiringDate, setExpiringDate] = useState<string | null>(null);
-  const [coupons, setCoupons] = useState<ProfileCoupon[]>([]);
+  const [vouchers, setVouchers] = useState<ProfileVoucher[]>([]);
   const [transactions, setTransactions] = useState<ProfilePointTransaction[]>([]);
-  const [activeTab, setActiveTab] = useState('coupons');
+  const [activeTab, setActiveTab] = useState('vouchers');
   const [redeemDrawerOpen, setRedeemDrawerOpen] = useState(false);
-  const [selectedCoupon, setSelectedCoupon] = useState<ProfileCoupon | null>(null);
+  const [selectedVoucher, setSelectedVoucher] = useState<ProfileVoucher | null>(null);
 
   useEffect(() => {
     async function loadProfile() {
@@ -67,9 +68,9 @@ export default function ProfilePage() {
                     setExpiringDate(pointsResponse.data.expiring_date || null);
                   }
 
-                  // Load mock coupons
-                  const mockCoupons = profileCouponsMock.getMyCoupons(customer.id);
-                  setCoupons(mockCoupons);
+                  // Load mock vouchers
+                  const mockVouchers = profileVouchersMock.getMyVouchers(customer.id);
+                  setVouchers(mockVouchers);
 
                   // Load mock point history
                   const mockHistory = profilePointHistoryMock.getHistory(customer.id);
@@ -113,9 +114,9 @@ export default function ProfilePage() {
                 setExpiringDate(pointsResponse.data.expiring_date || null);
               }
 
-              // Load mock coupons
-              const mockCoupons = profileCouponsMock.getMyCoupons(customer.id);
-              setCoupons(mockCoupons);
+              // Load mock vouchers
+              const mockVouchers = profileVouchersMock.getMyVouchers(customer.id);
+              setVouchers(mockVouchers);
 
               // Load mock point history
               const mockHistory = profilePointHistoryMock.getHistory(customer.id);
@@ -145,13 +146,54 @@ export default function ProfilePage() {
   const getTierColor = (tier?: string) => {
     switch (tier) {
       case 'platinum':
-        return { bg: '#E5E4E2', text: '#2C2C2C', border: '#C0C0C0' };
+        return { 
+          bg: 'linear-gradient(135deg, #E5E4E2 0%, #D4D4D4 100%)',
+          bgSolid: '#E5E4E2',
+          text: '#2C2C2C', 
+          border: '#C0C0C0',
+          icon: '#2C2C2C',
+          shadow: '0 4px 12px rgba(44, 44, 44, 0.15)'
+        };
       case 'gold':
-        return { bg: '#FFF8DC', text: '#B8860B', border: '#FFD700' };
+        return { 
+          bg: 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)',
+          bgSolid: '#FFD700',
+          text: '#FFFFFF', 
+          border: '#FFA500',
+          icon: '#FFFFFF',
+          shadow: '0 4px 12px rgba(255, 215, 0, 0.3)'
+        };
       case 'silver':
-        return { bg: '#F5F5F5', text: '#696969', border: '#C0C0C0' };
+        return { 
+          bg: 'linear-gradient(135deg, #C0C0C0 0%, #A8A8A8 100%)',
+          bgSolid: '#C0C0C0',
+          text: '#FFFFFF', 
+          border: '#A8A8A8',
+          icon: '#FFFFFF',
+          shadow: '0 4px 12px rgba(192, 192, 192, 0.25)'
+        };
       default:
-        return { bg: '#F5F5F5', text: '#999', border: '#ddd' };
+        return { 
+          bg: 'linear-gradient(135deg, #C0C0C0 0%, #A8A8A8 100%)',
+          bgSolid: '#C0C0C0',
+          text: '#FFFFFF', 
+          border: '#A8A8A8',
+          icon: '#FFFFFF',
+          shadow: '0 4px 12px rgba(192, 192, 192, 0.25)'
+        };
+    }
+  };
+
+  const getTierIcon = (tier?: string) => {
+    switch (tier) {
+      case 'platinum':
+        return <CrownOutlined style={{ fontSize: 18, marginRight: 8 }} />;
+      case 'gold':
+        return <StarOutlined style={{ fontSize: 18, marginRight: 8 }} />;
+      case 'silver':
+        return <TrophyOutlined style={{ fontSize: 18, marginRight: 8 }} />;
+      default:
+        return <TrophyOutlined style={{ fontSize: 18, marginRight: 8 }} />;
     }
   };
 
@@ -164,7 +206,7 @@ export default function ProfilePage() {
       case 'silver':
         return 'Silver';
       default:
-        return 'Member';
+        return 'Silver'; // Default to Silver instead of Member
     }
   };
 
@@ -191,30 +233,36 @@ export default function ProfilePage() {
     }
   };
 
-  const handleRedeemCoupon = (couponId: string) => {
-    const coupon = coupons.find((c) => c.id === couponId);
-    if (coupon && coupon.status === 'AVAILABLE') {
-      setSelectedCoupon(coupon);
+  const handleRedeemVoucher = (voucherId: string) => {
+    const voucher = vouchers.find((c) => c.id === voucherId);
+    if (voucher && voucher.status === 'AVAILABLE') {
+      setSelectedVoucher(voucher);
       setRedeemDrawerOpen(true);
     }
   };
 
-  const handleMarkUsed = (couponId: string) => {
-    profileCouponsMock.markAsUsed(couponId);
-    const updatedCoupons = profileCouponsMock.getMyCoupons(profile?.id || '');
-    setCoupons(updatedCoupons);
-    message.success('Coupon marked as used');
+  const handleMarkUsed = (voucherId: string) => {
+    profileVouchersMock.markAsUsed(voucherId);
+    const updatedVouchers = profileVouchersMock.getMyVouchers(profile?.id || '');
+    setVouchers(updatedVouchers);
+    message.success('Voucher marked as used');
   };
 
   const tierColors = getTierColor(profile.tier);
 
+  // Generate member code for display
+  const memberCode = profile.member_no || `KOS-${profile.id.slice(-6).toUpperCase()}`;
+  
+  // QR Code value - contains member code for staff to scan
+  const qrCodeValue = memberCode;
+
   const tabItems = [
     {
-      key: 'coupons',
-      label: 'My Coupons',
+      key: 'vouchers',
+      label: 'My Vouchers',
       children: (
         <div style={{ marginTop: 24 }}>
-          {coupons.length === 0 ? (
+          {vouchers.length === 0 ? (
             <Card
               style={{
                 borderRadius: 16,
@@ -227,26 +275,26 @@ export default function ProfilePage() {
               <Empty
                 description={
                   <Text type="secondary" style={{ fontSize: 14 }}>
-                    No coupons yet
+                    No vouchers yet
                   </Text>
                 }
                 image={Empty.PRESENTED_IMAGE_SIMPLE}
               >
                 <Text type="secondary" style={{ fontSize: 13 }}>
-                  Claim coupons from the catalog to get started
+                  Claim vouchers from the catalog to get started
                 </Text>
               </Empty>
             </Card>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              {coupons.map((coupon) => {
-                const isAvailable = coupon.status === 'AVAILABLE';
-                const isUsed = coupon.status === 'USED';
-                const isExpired = coupon.status === 'EXPIRED';
+              {vouchers.map((voucher) => {
+                const isAvailable = voucher.status === 'AVAILABLE';
+                const isUsed = voucher.status === 'USED';
+                const isExpired = voucher.status === 'EXPIRED';
 
                 return (
                   <Card
-                    key={coupon.id}
+                    key={voucher.id}
                     style={{
                       borderRadius: 16,
                       background: isAvailable ? '#ffffff' : '#fafafa',
@@ -260,10 +308,10 @@ export default function ProfilePage() {
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
                       <div style={{ flex: 1 }}>
                         <Title level={5} style={{ margin: 0, marginBottom: 6, fontWeight: 600, color: '#2C2C2C' }}>
-                          {coupon.title}
+                          {voucher.title}
                         </Title>
                         <Text type="secondary" style={{ fontSize: 13, lineHeight: 1.6 }}>
-                          {coupon.description}
+                          {voucher.description}
                         </Text>
                       </div>
                       <Tag
@@ -276,16 +324,16 @@ export default function ProfilePage() {
                           border: 'none',
                         }}
                       >
-                        {coupon.status}
+                        {voucher.status}
                       </Tag>
                     </div>
 
                     <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid #f0f0f0' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
                         <div>
-                          {coupon.point_cost && coupon.point_cost > 0 ? (
+                          {voucher.point_cost && voucher.point_cost > 0 ? (
                             <Text type="secondary" style={{ fontSize: 12 }}>
-                              Cost: <Text strong style={{ color: '#1f4da1' }}>{coupon.point_cost} points</Text>
+                              Cost: <Text strong style={{ color: '#1f4da1' }}>{voucher.point_cost} points</Text>
                             </Text>
                           ) : (
                             <Text strong style={{ fontSize: 14, color: '#1f4da1' }}>
@@ -294,7 +342,7 @@ export default function ProfilePage() {
                           )}
                         </div>
                         <Text type="secondary" style={{ fontSize: 12 }}>
-                          Valid until: {formatDate(coupon.expiry_date)}
+                          Valid until: {formatDate(voucher.expiry_date)}
                         </Text>
                       </div>
 
@@ -303,7 +351,7 @@ export default function ProfilePage() {
                           type="primary"
                           block
                           size="large"
-                          onClick={() => handleRedeemCoupon(coupon.id)}
+                          onClick={() => handleRedeemVoucher(voucher.id)}
                           style={{
                             borderRadius: 12,
                             height: 44,
@@ -454,7 +502,7 @@ export default function ProfilePage() {
           
           <div style={{ position: 'relative', zIndex: 1, textAlign: 'center' }}>
             {/* Avatar with Edit Icon */}
-            <div style={{ position: 'relative', display: 'inline-block', marginBottom: 24 }}>
+            <div style={{ position: 'relative', display: 'inline-block', marginBottom: 20 }}>
               <Avatar
                 size={100}
                 src={profile.image_url}
@@ -498,42 +546,110 @@ export default function ProfilePage() {
               </button>
             </div>
 
-            {/* Member No */}
-            <Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 16, letterSpacing: 0.5 }}>
-              Member No: {profile.member_no || `KOS-${profile.id.slice(-6).toUpperCase()}`}
-            </Text>
-
-            {/* Tier Badge */}
-            <div style={{ marginBottom: 12 }}>
-              <Tag
-                style={{
-                  background: tierColors.bg,
-                  color: tierColors.text,
-                  border: `2px solid ${tierColors.border}`,
-                  borderRadius: 20,
-                  padding: '6px 20px',
-                  fontSize: 14,
-                  fontWeight: 600,
-                  letterSpacing: 0.5,
-                  margin: 0,
+            {/* Member Code - Prominent Display */}
+            <div style={{ marginBottom: 24 }}>
+              <Text 
+                type="secondary" 
+                style={{ 
+                  fontSize: 13, 
+                  display: 'block', 
+                  marginBottom: 8, 
+                  fontWeight: 500,
+                  color: '#666',
+                  letterSpacing: 0.3,
                 }}
               >
-                {getTierLabel(profile.tier)}
-              </Tag>
+                Member Code
+              </Text>
+              <Text 
+                strong
+                style={{ 
+                  fontSize: 20, 
+                  display: 'block', 
+                  fontWeight: 700,
+                  color: '#1f4da1',
+                  letterSpacing: 1.5,
+                  fontFamily: 'monospace',
+                }}
+              >
+                {memberCode}
+              </Text>
+            </div>
+
+            {/* QR Code */}
+            <div style={{ 
+              marginBottom: 24,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 12,
+            }}>
+              <div style={{
+                padding: 16,
+                background: '#ffffff',
+                borderRadius: 16,
+                boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}>
+                <QRCodeSVG
+                  value={qrCodeValue}
+                  size={200}
+                  level="M"
+                  includeMargin={false}
+                  fgColor="#1f4da1"
+                  bgColor="#ffffff"
+                />
+              </div>
+              <Text 
+                type="secondary" 
+                style={{ 
+                  fontSize: 13, 
+                  color: '#666',
+                  fontWeight: 500,
+                  letterSpacing: 0.3,
+                }}
+              >
+                Scan to collect points
+              </Text>
+            </div>
+
+            {/* Tier Badge - Enhanced */}
+            <div style={{ marginBottom: 12 }}>
+              <div
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  background: tierColors.bg.includes('gradient') ? tierColors.bg : tierColors.bgSolid,
+                  color: tierColors.text,
+                  border: `2px solid ${tierColors.border}`,
+                  borderRadius: 24,
+                  padding: '10px 28px',
+                  fontSize: 16,
+                  fontWeight: 700,
+                  letterSpacing: 0.8,
+                  boxShadow: tierColors.shadow,
+                  minWidth: 140,
+                }}
+              >
+                {getTierIcon(profile.tier)}
+                <span>{getTierLabel(profile.tier)}</span>
+              </div>
             </div>
 
             {/* Tier Expiry */}
             {profile.tier_expiry && (
-              <Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 24 }}>
+              <Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 20 }}>
                 Valid until {formatDate(profile.tier_expiry)}
               </Text>
             )}
 
             {/* Sign Out Button */}
             <Button
-              type="default"
-              danger
-              icon={<LogoutOutlined />}
+              type="text"
+              icon={<LogoutOutlined style={{ fontSize: 14 }} />}
               onClick={() => {
                 // Clear localStorage
                 if (typeof window !== 'undefined') {
@@ -547,10 +663,13 @@ export default function ProfilePage() {
                 }
               }}
               style={{
-                marginTop: 16,
-                borderRadius: 12,
-                height: 40,
-                fontWeight: 500,
+                borderRadius: 8,
+                height: 32,
+                fontSize: 13,
+                fontWeight: 400,
+                color: '#999',
+                padding: '0 12px',
+                marginTop: 8,
               }}
             >
               Sign Out
@@ -618,10 +737,10 @@ export default function ProfilePage() {
       {/* REDEEM DRAWER */}
       <RedeemDrawer
         open={redeemDrawerOpen}
-        coupon={selectedCoupon}
+        voucher={selectedVoucher}
         onClose={() => {
           setRedeemDrawerOpen(false);
-          setSelectedCoupon(null);
+          setSelectedVoucher(null);
         }}
         onMarkUsed={handleMarkUsed}
       />

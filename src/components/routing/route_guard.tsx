@@ -15,7 +15,7 @@ interface RouteGuardProps {
 /**
  * RouteGuard - Single source of truth for protected route authentication
  * 
- * Protected routes: /home, /purchase, /coupon, /profile
+ * Protected routes: /home, /purchase, /voucher, /profile
  * 
  * Logic:
  * 1. If hasLocalStorage (kose_registration) → allow access
